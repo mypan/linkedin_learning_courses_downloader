@@ -1,4 +1,5 @@
 # Linkedin Learning Courses Downloader 🔓
+###### Tested with Firefox 46.0.1 and Selenium 2.53.0
 
 A simple python tool to download video lessons from Linkedin Learning
 
