@@ -1,8 +1,12 @@
-# Linkedin Learning Courses Downloader
+# Linkedin Learning Courses Downloader 🔓
 
 A simple python tool to download video lessons from Linkedin Learning
 
-### How to use
+## How to use
+First install the requirements:
+```
+pip install requirements.txt
+```
 In the `config.py` file, write your login info and fill the `COURSES` array with the url of the courses you want to download. Set `HD` to `False` if you want to download the videos in standard resolution.
 ```
 USERNAME = 'user@email.com'
