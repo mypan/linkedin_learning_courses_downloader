@@ -9,14 +9,17 @@ First install the requirements:
 ```
 pip install -r requirements.txt
 ```
-In the `config.py` file, write your login info and fill the `COURSES` array with the url of the courses you want to download.
+In the `config.py` file, write your login info and fill the `COURSES` array with the slug of the the courses you want to download, for example:
+
+`https://www.linkedin.com/learning/it-security-foundations-core-concepts/ -> it-security-foundations-core-concepts`
+
 ```
 USERNAME = 'user@email.com'
 PASSWORD = 'password'
 
 COURSES = [
-    'https://www.linkedin.com/learning/it-security-foundations-core-concepts/',
-    'https://www.linkedin.com/learning/javascript-for-web-designers-2'
+    'it-security-foundations-core-concepts',
+    'javascript-for-web-designers-2'
 ]
 ```
 Then excecute the script:
