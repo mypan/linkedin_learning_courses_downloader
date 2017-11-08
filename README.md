@@ -1,10 +1,13 @@
-# LLCD ☄️☄️☄️
-##### Linkedin Learning Courses Downloader
-###### v0.2: now works without webdriver
+<img src="https://i.imgur.com/TkbiSQY.png" width="175" align="right">
 
-A simple python scraper tool that downloads video lessons from Linkedin Learning
+# Linkedin Learning Downloader
+[![built with Requests](https://img.shields.io/badge/built%20with-Requests-yellow.svg?style=flat-square)](http://docs.python-requests.org)
+[![built with Python2.7](https://img.shields.io/badge/built%20with-Python2.7-red.svg?style=flat-square)](https://www.python.org/)
 
-## How to use
+### A scraping tool that downloads video lessons from Linkedin Learning
+Implemented in python using requests
+
+### How to use
 First install the requirements:
 ```
 pip install -r requirements.txt
@@ -30,3 +33,7 @@ The courses will be saved in the `out` folder.
 
 ### Demo
 [![asciicast](https://asciinema.org/a/143894.png)](https://asciinema.org/a/143894)
+
+---
+###### Have Fun & Feel Free to report any issues
+---
