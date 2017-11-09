@@ -27,7 +27,7 @@ COURSES = [
 ```
 Then excecute the script:
 ```
-python llcd.py
+python lld.py
 ```
 The courses will be saved in the `out` folder.
 

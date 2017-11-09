@@ -23,27 +23,21 @@ def login():
                 urllib2.HTTPSHandler(debuglevel=0),
                 urllib2.HTTPCookieProcessor(cookie_jar)
             )
-
     html = load_page(opener, 'https://www.linkedin.com/')
     soup = BeautifulSoup(html, 'html.parser')
     csrf = soup.find(id='loginCsrfParam-login')['value']
-
     login_data = urllib.urlencode({
                     'session_key': config.USERNAME,
                     'session_password': config.PASSWORD,
                     'loginCsrfParam': csrf,
                 })
-
     load_page(opener, 'https://www.linkedin.com/uas/login-submit', login_data)
-
     try:
         cookie = cookie_jar._cookies['.www.linkedin.com']['/']['li_at'].value
     except:
         sys.exit(0)
-
     cookie_jar.save()
     os.remove(cookie_filename)
-
     return cookie
 
 
@@ -64,7 +58,6 @@ def load_page(opener, url, data=None):
         response = opener.open(url)
     except:
         print '[Fatal] Your IP may have been temporarily blocked'
-
     try:
         if data is not None:
             response = opener.open(url, data)
@@ -85,11 +78,11 @@ def download_file(url, file_path, file_name):
             if chunk:
                 f.write(chunk)
 
+
 if __name__ == '__main__':
     cookies = authenticate()
-    headers = {'Csrf-Token':'ajax:4332914976342601831'}
+    headers = {'Csrf-Token': 'ajax:4332914976342601831'}
     cookies['JSESSIONID'] = 'ajax:4332914976342601831'
-
     for course in config.COURSES:
         print ''
         course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
@@ -120,5 +113,5 @@ if __name__ == '__main__':
                     print '[!] ------ Can\'t download the video "%s", probably is only for premium users' % video_name
                 else:
                     print '[*] ------ Downloading video "%s"' % video_name
-                    download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' % (str(vc), video_name))
-
+                    download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' %
+                                  (str(vc), video_name))
