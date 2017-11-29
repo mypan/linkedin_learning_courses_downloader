@@ -25,7 +25,7 @@ COURSES = [
     'javascript-for-web-designers-2'
 ]
 ```
-Then excecute the script:
+Then execute the script:
 ```
 python lld.py
 ```
