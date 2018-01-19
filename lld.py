@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import cookielib
 import os
 import urllib
