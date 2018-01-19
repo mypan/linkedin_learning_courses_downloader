@@ -88,7 +88,7 @@ if __name__ == '__main__':
         course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                      '??fields=videos&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
         r = requests.get(course_url, cookies=cookies, headers=headers)
-        invalid_file_chars = r'[\\/*?:.,"<>|]'
+        invalid_file_chars = r'[\\/*?:.,"\'<>|]'
         course_name = r.json()['elements'][0]['title']
         course_name = re.sub(invalid_file_chars, " ", course_name)
         chapters = r.json()['elements'][0]['chapters']
