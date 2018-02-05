@@ -91,7 +91,7 @@ if __name__ == '__main__':
         r = requests.get(course_url, cookies=cookies, headers=headers)
         invalid_file_chars = r'[\\/*?:.,"\'<>|]'
         course_name = r.json()['elements'][0]['title']
-        course_name = re.sub(invalid_file_chars, " ", course_name)
+        course_name = re.sub(invalid_file_chars, " ", course_name).strip()
         chapters = r.json()['elements'][0]['chapters']
         print '[*] Parsing "%s" course\'s chapters' % course_name
         print '[*] [%d chapters found]' % len(chapters)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
             print '[*] --- Parsing "%s" chapters\'s videos' % chapter_name
             print '[*] --- [%d videos found]' % len(videos)
             for video in videos:
-                video_name = re.sub(invalid_file_chars, " ", video['title'])
+                video_name = re.sub(invalid_file_chars, " ", video['title']).strip()
                 video_slug = video['slug']
                 video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                             '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
