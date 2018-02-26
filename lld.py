@@ -96,7 +96,7 @@ if __name__ == '__main__':
         print '[*] Parsing "%s" course\'s chapters' % course_name
         print '[*] [%d chapters found]' % len(chapters)
         for chapter in chapters:
-            chapter_name = re.sub(invalid_file_chars, " ", chapter['title'])
+            chapter_name = re.sub(invalid_file_chars, " ", chapter['title']).strip().encode('utf-8')
             videos = chapter['videos']
             vc = 0
             print '[*] --- Parsing "%s" chapters\'s videos' % chapter_name
