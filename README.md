@@ -12,13 +12,14 @@ First install the requirements:
 ```
 pip install -r requirements.txt
 ```
-In the `config.py` file, write your login info and fill the `COURSES` array with the slug of the the courses you want to download, for example:
+In the `config.py` file, write your login info, download path and fill the `COURSES` array with the slug of the the courses you want to download, for example:
 
 `https://www.linkedin.com/learning/it-security-foundations-core-concepts/ -> it-security-foundations-core-concepts`
 
 ```
 USERNAME = 'user@email.com'
 PASSWORD = 'password'
+BASE_DOWNLOAD_PATH = 'E:/Downloads/LinkedInLearning' #use "/" as separators
 
 COURSES = [
     'it-security-foundations-core-concepts',
@@ -29,9 +30,9 @@ Then execute the script:
 ```
 python lld.py
 ```
-The courses will be saved in the `out` folder.
+The courses will be saved in your defined download folder.
 
-### Demo
+### Demo (Outdated by now)
 [![asciicast](https://asciinema.org/a/143894.png)](https://asciinema.org/a/143894)
 
 ---
