@@ -168,7 +168,7 @@ if __name__ == '__main__':
     base_download_path = config.BASE_DOWNLOAD_PATH
     file_type_video = '.mp4'
     file_type_srt = '.srt'
-    file_type_exercise = '.zip'
+    #file_type_exercise = '.zip' #no need for that, extracted filename already contains the filetype
     file_type_description = '.txt'
     #Courses
     for course in config.COURSES:
@@ -203,7 +203,7 @@ if __name__ == '__main__':
                 continue        
             #Download course description
             if os.path.exists(course_folder_path + '/' + 'Description' + file_type_description):
-                    print '[!] Description file: already existing'                    
+                    print '[!] Description file: already existing.\n'                    
             else:
                 print ('[*] Course description: downloading...')
                 download_description(course_folder_path, 'Description' + file_type_description, course_description, 'https://www.linkedin.com/learning/' + course)
@@ -214,13 +214,13 @@ if __name__ == '__main__':
                 exercise_file_url = r.json()['elements'][0]['exerciseFiles'][0]['url']
                 exercise_size = (r.json()['elements'][0]['exerciseFiles'][0]['sizeInBytes'])/1024/1024
             except:
-                print('[!] Exercise files: not available for this course\n')
-            else:
-                print ('[*] Exercise files (%s MB): downloading...' % exercise_size)
-                if os.path.exists(course_folder_path + '/' + exercise_file_name + file_type_exercise):
-                    print '[!]          ->exercise file already existing'                    
+                print('[!] Exercise files: not available for this course.\n')
+            else:                
+                if os.path.exists(course_folder_path + '/' + exercise_file_name):
+                    print '[!] Exercise file: already existing.\n'
                 else:
-                    download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+                    print ('[*] Exercise file (%s MB): downloading...' % exercise_size)
+                    download_file(exercise_file_url, course_folder_path, exercise_file_name)                    
                     print('[*] --- finished.\n')
             #Chapters
             chapters = r.json()['elements'][0]['chapters']
