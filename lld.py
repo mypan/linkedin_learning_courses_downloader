@@ -179,90 +179,96 @@ if __name__ == '__main__':
         #print 'Course-URL: "%s"' % course_api_url
         r = requests.get(course_api_url, cookies=cookies, headers=headers)
         #print 'Response from Server: %s' % r        
-        if r.json()['status'] == 404:
-            print('[!] Server-Reponse: 404. Mostly caused by user failure when providing a wrong course slug in config file.\n[!] Check for errors like: course-title-xyz/setting-up-the-abc. Only course slug is allowed.')
-            exit(0);
-        course_title = cleanup_string(r.json()['elements'][0]['title'])
-        course_description = r.json()['elements'][0]['description']
-        fullCourseUnlocked = r.json()['elements'][0]['fullCourseUnlocked']
-        course_releasedate_unix = r.json()['elements'][0]['releasedOn']
-        course_releasedate = time.strftime("%Y.%m", time.gmtime(course_releasedate_unix / 1000.0))
-            #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
-            #course_updatedate_unix = 
-            #course_updatedate_
-        course_folder_path = '%s/%s (%s)' % (base_download_path, course_title, course_releasedate)
-        print '[*] __________ Starting download of course "%s" __________' % course_title        
-        #Check if access to full course
-        if fullCourseUnlocked == True:
-            print('[*] Access to full course is GRANTED :). Start downloading.\n')
-        else:
-            print('[*] Access to full course is DENIED ):. Check login data and/or premium-status of account. Trying next course.\n')
-            continue        
-        #Download course description
-        print ('[*] Course description: downloading...')
-        download_description(course_folder_path, 'Description' + file_type_description, course_description, 'https://www.linkedin.com/learning/' + course)
-        print('[*] --- finished.\n')
-        #Download course exercise files        
         try:
-            exercise_file_name = r.json()['elements'][0]['exerciseFiles'][0]['name']
-            exercise_file_url = r.json()['elements'][0]['exerciseFiles'][0]['url']
-            exercise_size = (r.json()['elements'][0]['exerciseFiles'][0]['sizeInBytes'])/1024/1024
+            course_title = cleanup_string(r.json()['elements'][0]['title'])
         except:
-            print('[*] Exercise files: not available\n')
+            if r.json()['status'] == 404:
+                print('[!] Server-Reponse: 404. Mostly caused by user failure when providing a wrong course slug in config file.\n[!] Check for errors like: course-title-xyz/setting-up-the-abc. Only course slug is allowed.')
+            exit(0);
         else:
-            print ('[*] Exercise files (%s MB): downloading...' % exercise_size)
-            if os.path.exists(course_folder_path + '/' + exercise_file_name + file_type_exercise):
-                print '[!]          ->exercise file already present'                    
+            course_description = r.json()['elements'][0]['description']
+            fullCourseUnlocked = r.json()['elements'][0]['fullCourseUnlocked']
+            course_releasedate_unix = r.json()['elements'][0]['releasedOn']
+            course_releasedate = time.strftime("%Y.%m", time.gmtime(course_releasedate_unix / 1000.0))
+                #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
+                #course_updatedate_unix = 
+                #course_updatedate_
+            course_folder_path = '%s/%s (%s)' % (base_download_path, course_title, course_releasedate)
+            print '[*] __________ Starting download of course "%s" __________' % course_title        
+            #Check if access to full course
+            if fullCourseUnlocked == True:
+                print('[*] Access to full course is GRANTED :). Start downloading.\n')
             else:
-                download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+                print('[!] Access to full course is DENIED ):. Check login data and/or premium-status of account. Trying next course.\n')
+                continue        
+            #Download course description
+            if os.path.exists(course_folder_path + '/' + 'Description' + file_type_description):
+                    print '[!] Description file: already existing'                    
+            else:
+                print ('[*] Course description: downloading...')
+                download_description(course_folder_path, 'Description' + file_type_description, course_description, 'https://www.linkedin.com/learning/' + course)
                 print('[*] --- finished.\n')
-        #Chapters
-        chapters = r.json()['elements'][0]['chapters']
-        print ('[*] Parsing course\'s chapters')
-        print ('[*] [%d chapters found]' % len(chapters))
-        chapter_index = 0
-        for chapter in chapters:
-            print("")
-            chapter_name = cleanup_string(chapter['title'])
-            videos = chapter['videos']
-            video_index = 0
-            chapter_index +=1
-            print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index), chapter_name)
-            print ('[*] --- [%d videos found]' % len(videos))
-            #Videos
-            for video in videos:
-                video_name = cleanup_string (video['title'])
-                video_slug = video['slug']
-                video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
-                            '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
-                    .format(course, video_slug)
-                r = requests.get(video_url, cookies=cookies, headers=headers)                
-                video_index += 1
-                #Download videos
-                try:
-                    download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
-                    #print 'Searching-URL: "%s"' % download_url
-                except:
-                    print ('[!] ------ Can\'t download the video "%s", probably is only for premium users. Check full access in browser' % video_name)
+            #Download course exercise files        
+            try:
+                exercise_file_name = r.json()['elements'][0]['exerciseFiles'][0]['name']
+                exercise_file_url = r.json()['elements'][0]['exerciseFiles'][0]['url']
+                exercise_size = (r.json()['elements'][0]['exerciseFiles'][0]['sizeInBytes'])/1024/1024
+            except:
+                print('[!] Exercise files: not available for this course\n')
+            else:
+                print ('[*] Exercise files (%s MB): downloading...' % exercise_size)
+                if os.path.exists(course_folder_path + '/' + exercise_file_name + file_type_exercise):
+                    print '[!]          ->exercise file already existing'                    
                 else:
-                    file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index),chapter_name)
-                    file_name = '%s - %s' % (str(video_index), video_name)                    
-                    print ('[*] ------ Downloading video #%s "%s"' % (str(video_index), video_name))
-                    if os.path.exists(file_path + '/' + file_name + file_type_video):
-                        print '[!]          ->video file already present, now checking subtitle existence'                    
-                    else:
-                        download_file(download_url, file_path, file_name + file_type_video)
-                #Download subtitles
-                try:
-                    subtitles = r.json()['elements'][0]['selectedVideo']['transcript']['lines']
-                except:
-                    print('[*] ------ No subtitles available')
-                else:                    
-                    print ('[*] ------ Downloading subtitles')
-                    if os.path.exists(file_path + '/' + file_name + file_type_srt):
-                        print('[!]          ->subtitle file already present, skipping to next')
-                    else:
-                        download_subtitles(file_path, file_name + file_type_srt)
+                    download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+                    print('[*] --- finished.\n')
+            #Chapters
+            chapters = r.json()['elements'][0]['chapters']
+            print ('[*] Parsing course\'s chapters')
+            print ('[*] [%d chapters found]' % len(chapters))
+            chapter_index = 0
+            for chapter in chapters:
                 print("")
-    print '[*] __________ Finished course "%s" __________' % course_title
+                chapter_name = cleanup_string(chapter['title'])
+                videos = chapter['videos']
+                video_index = 0
+                chapter_index +=1
+                print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index), chapter_name)
+                print ('[*] --- [%d videos found]' % len(videos))
+                #Videos
+                for video in videos:
+                    video_name = cleanup_string (video['title'])
+                    video_slug = video['slug']
+                    video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
+                                '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
+                        .format(course, video_slug)
+                    r = requests.get(video_url, cookies=cookies, headers=headers)                
+                    video_index += 1
+                    #Download videos
+                    try:
+                        download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
+                        #print 'Searching-URL: "%s"' % download_url
+                    except:
+                        print ('[!] ------ Can\'t download the video "%s", probably is only for premium users. Check full access in browser' % video_name)
+                    else:
+                        file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index),chapter_name)
+                        file_name = '%s - %s' % (str(video_index), video_name)                    
+                        print ('[*] ------ Downloading video #%s "%s"' % (str(video_index), video_name))
+                        if os.path.exists(file_path + '/' + file_name + file_type_video):
+                            print '[!]          ->video file already existing, now checking subtitle existence'                    
+                        else:
+                            download_file(download_url, file_path, file_name + file_type_video)
+                    #Download subtitles
+                    try:
+                        subtitles = r.json()['elements'][0]['selectedVideo']['transcript']['lines']
+                    except:
+                        print('[*] ------ No subtitles available')
+                    else:                    
+                        print ('[*] ------ Downloading subtitles')
+                        if os.path.exists(file_path + '/' + file_name + file_type_srt):
+                            print('[!]          ->subtitle file already existing, skipping to next')
+                        else:
+                            download_subtitles(file_path, file_name + file_type_srt)
+                    print("")
+        print '[*] __________ Finished course "%s" __________' % course_title
                     
