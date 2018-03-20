@@ -101,8 +101,8 @@ def download_file(url, file_path, file_name):
             for chunk in reply.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)    
-    except EnvironmentError:
-        print 'IO error. Deleting last incomplete file. Also check last created file manually for integrity'
+    except:
+        print 'Error. Deleting last incomplete file. Also check last created file manually for integrity'
         os.remove(file_path + '/' + file_name)     
 
                 
@@ -114,6 +114,8 @@ def to_hhmmssms(ms):
     
     
 def download_subtitles(file_path, file_name):
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
     #srt needs start and end time, while LinkedIn is only providing start time. So I use end-time of a subtitle = start time of the next subtitle.
     try:
         with open(file_path + '/' + file_name, 'a') as subtitle_file:
@@ -139,11 +141,26 @@ def download_subtitles(file_path, file_name):
                 index_next_subtitle+=1                        
         subtitle_file.close()
         
-    except EnvironmentError:
+    except:
+        print 'Error. Deleting last incomplete file. Also check last created file manually for integrity'
+        os.remove(file_path + '/' + file_name)     
+
+def download_description(file_path, file_name, description, course_url):
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    try:
+        with open(file_path + '/' + file_name, 'a') as description_file:
+            description_file.write(description)
+            description_file.write('\n')
+            description_file.write('Link: %s' % course_url)
+        description_file.close()
+        
+    except:
         print 'IO error. Deleting last incomplete file. Also check last created file manually for integrity'
         os.remove(file_path + '/' + file_name)     
 
-
+        
+        
 if __name__ == '__main__':
     cookies = authenticate()
     headers = {'Csrf-Token': 'ajax:4332914976342601831'}
@@ -152,40 +169,50 @@ if __name__ == '__main__':
     file_type_video = '.mp4'
     file_type_srt = '.srt'
     file_type_exercise = '.zip'
+    file_type_description = '.txt'
     #Courses
     for course in config.COURSES:
         print('\n')
         #Request important course data fields
-        course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
+        course_api_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                      '??fields=fullCourseUnlocked,releasedOn,exerciseFileUrls,exerciseFiles&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
-        #print 'Course-URL: "%s"' % course_url
-        r = requests.get(course_url, cookies=cookies, headers=headers)
+        #print 'Course-URL: "%s"' % course_api_url
+        r = requests.get(course_api_url, cookies=cookies, headers=headers)
         #print 'Response from Server: %s' % r        
-        course_name = cleanup_string(r.json()['elements'][0]['title'])
+        course_title = cleanup_string(r.json()['elements'][0]['title'])
+        course_description = r.json()['elements'][0]['description']
         fullCourseUnlocked = r.json()['elements'][0]['fullCourseUnlocked']
         course_releasedate_unix = r.json()['elements'][0]['releasedOn']
         course_releasedate = time.strftime("%Y.%m", time.gmtime(course_releasedate_unix / 1000.0))
             #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
             #course_updatedate_unix = 
             #course_updatedate_
-        course_folder_path = '%s/%s (%s)' % (base_download_path, course_name, course_releasedate)
-        print '[*] __________ Starting download of course "%s" __________' % course_name        
+        course_folder_path = '%s/%s (%s)' % (base_download_path, course_title, course_releasedate)
+        print '[*] __________ Starting download of course "%s" __________' % course_title        
         #Check if access to full course
         if fullCourseUnlocked == True:
             print('[*] Access to full course is GRANTED :). Start downloading.\n')
         else:
             print('[*] Access to full course is DENIED ):. Check login data and/or premium-status of account. Trying next course.\n')
             continue        
+        #Download course description
+        print ('[*] Course description: downloading...')
+        download_description(course_folder_path, 'Description' + file_type_description, course_description, 'https://www.linkedin.com/learning/' + course)
+        print('[*] --- finished.\n')
         #Download course exercise files        
         try:
             exercise_file_name = r.json()['elements'][0]['exerciseFiles'][0]['name']
             exercise_file_url = r.json()['elements'][0]['exerciseFiles'][0]['url']
             exercise_size = (r.json()['elements'][0]['exerciseFiles'][0]['sizeInBytes'])/1024/1024
         except:
-            print('[*] ------ No exercise files available\n')
+            print('[*] Exercise files: not available\n')
         else:
-            print ('[*] ------ Downloading course exercise files (%s MB)\n' % exercise_size)
-            download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+            print ('[*] Exercise files (%s MB): downloading...' % exercise_size)
+            if os.path.exists(course_folder_path + '/' + exercise_file_name + file_type_exercise):
+                print '[!]          ->exercise file already present'                    
+            else:
+                download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+                print('[*] --- finished.\n')
         #Chapters
         chapters = r.json()['elements'][0]['chapters']
         print ('[*] Parsing course\'s chapters')
@@ -234,5 +261,5 @@ if __name__ == '__main__':
                     else:
                         download_subtitles(file_path, file_name + file_type_srt)
                 print("")
-    print '[*] __________ Finished course "%s" __________' % course_name
+    print '[*] __________ Finished course "%s" __________' % course_title
                     
