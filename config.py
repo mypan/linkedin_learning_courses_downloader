@@ -2,6 +2,7 @@
 
 USERNAME = ''
 PASSWORD = ''
+BASE_DOWNLOAD_PATH = 'E:/Downloads/LinkedInLearning' #use "/" as separators
 
 COURSES = [
     'it-security-foundations-core-concepts',

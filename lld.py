@@ -80,7 +80,7 @@ def cleanup_string(string):
                         u'ü': 'ue',
                         ':': ' -'                      
                         }
-    invalid_file_chars = r'[^A-Za-z0-9-]+'
+    invalid_file_chars = r'[^A-Za-z0-9\-\.]+'
     
     #replace Umlaut first
     umap = {ord(key):unicode(val) for key, val in replacementDictionary.items()}
@@ -113,20 +113,21 @@ def to_hhmmssms(ms):
     return "%d:%02d:%02d.%03d" % (hr,min,sec,ms)
     
     
-def download_subtitles(filepath_and_name):
+def download_subtitles(file_path, file_name):
     #srt needs start and end time, while LinkedIn is only providing start time. So I use end-time of a subtitle = start time of the next subtitle.
     try:
-        with open(filepath_and_name, 'a') as subtitle_file:
+        with open(file_path + '/' + file_name, 'a') as subtitle_file:
             index_next_subtitle = 1
             for subtitle in subtitles:                   
                 #print('Next-Index: "%i"') % index_next_subtitle
                 transcriptStartAt = milliseconds=subtitle['transcriptStartAt']                            
-                #for last subtitle (which hasn't a successor) use an end time that is probably longer than the video has now left (+5 seconds)
-                if (index_next_subtitle == len(subtitles)): #detecting list index out of boundary
+                #for last subtitle (which hasn't a successor) we use an end time that is probably longer than the video has now left (+5 seconds)
+                if (index_next_subtitle == len(subtitles)): #detecting last subtitle / list index out of boundary
                     transcriptEndAt = transcriptStartAt + 5000
                 else:
                     transcriptEndAt = milliseconds=subtitles[index_next_subtitle]['transcriptStartAt']            
-                caption = subtitle['caption']            
+                caption = subtitle['caption']
+                #write to file (line for line)
                 subtitle_file.write(str(index_next_subtitle))
                 subtitle_file.write('\n')
                 subtitle_file.write(str(to_hhmmssms(transcriptStartAt)))
@@ -140,80 +141,98 @@ def download_subtitles(filepath_and_name):
         
     except EnvironmentError:
         print 'IO error. Deleting last incomplete file. Also check last created file manually for integrity'
-        os.remove(filepath_and_name)     
+        os.remove(file_path + '/' + file_name)     
 
 
 if __name__ == '__main__':
     cookies = authenticate()
     headers = {'Csrf-Token': 'ajax:4332914976342601831'}
     cookies['JSESSIONID'] = 'ajax:4332914976342601831'
+    base_download_path = config.BASE_DOWNLOAD_PATH
+    file_type_video = '.mp4'
+    file_type_srt = '.srt'
+    file_type_exercise = '.zip'
+    #Courses
     for course in config.COURSES:
         print('\n')
-        #request release-time field of course
+        #Request important course data fields
         course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
-                     '??fields=releasedOn&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
+                     '??fields=fullCourseUnlocked,releasedOn,exerciseFileUrls,exerciseFiles&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
         #print 'Course-URL: "%s"' % course_url
         r = requests.get(course_url, cookies=cookies, headers=headers)
-        #print 'Response from Server: %s' % r
+        #print 'Response from Server: %s' % r        
         course_name = cleanup_string(r.json()['elements'][0]['title'])
-        #invalid_file_chars = r'[^A-Za-z0-9 ]+'
-        #course_name = re.sub(invalid_file_chars, " ", course_name)
-        print '[*] __________ Starting download of course "%s" __________' % course_name
+        fullCourseUnlocked = r.json()['elements'][0]['fullCourseUnlocked']
         course_releasedate_unix = r.json()['elements'][0]['releasedOn']
-        course_releasedate = time.strftime("%Y-%m-%d", time.gmtime(course_releasedate_unix / 1000.0))
-        #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
-        #course_updatedate_unix = 
-        #course_releasedate
+        course_releasedate = time.strftime("%Y.%m", time.gmtime(course_releasedate_unix / 1000.0))
+            #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
+            #course_updatedate_unix = 
+            #course_updatedate_
+        course_folder_path = '%s/%s (%s)' % (base_download_path, course_name, course_releasedate)
+        print '[*] __________ Starting download of course "%s" __________' % course_name        
+        #Check if access to full course
+        if fullCourseUnlocked == True:
+            print('[*] Access to full course is GRANTED :). Start downloading.\n')
+        else:
+            print('[*] Access to full course is DENIED ):. Check login data and/or premium-status of account. Trying next course.\n')
+            continue        
+        #Download course exercise files        
+        try:
+            exercise_file_name = r.json()['elements'][0]['exerciseFiles'][0]['name']
+            exercise_file_url = r.json()['elements'][0]['exerciseFiles'][0]['url']
+            exercise_size = (r.json()['elements'][0]['exerciseFiles'][0]['sizeInBytes'])/1024/1024
+        except:
+            print('[*] ------ No exercise files available\n')
+        else:
+            print ('[*] ------ Downloading course exercise files (%s MB)\n' % exercise_size)
+            download_file(exercise_file_url, course_folder_path, exercise_file_name + file_type_exercise)
+        #Chapters
         chapters = r.json()['elements'][0]['chapters']
         print ('[*] Parsing course\'s chapters')
         print ('[*] [%d chapters found]' % len(chapters))
         chapter_index = 0
         for chapter in chapters:
             print("")
-            chapter_name = cleanup_string(chapter['title'])  
-            # chapter_name = re.sub(invalid_file_chars, " ", chapter['title'])
-            #chapter_name = re.sub(r'[\\/*?:"<>|]', "", chapter['title'])
+            chapter_name = cleanup_string(chapter['title'])
             videos = chapter['videos']
             video_index = 0
             chapter_index +=1
             print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index), chapter_name)
             print ('[*] --- [%d videos found]' % len(videos))
+            #Videos
             for video in videos:
                 video_name = cleanup_string (video['title'])
-                #video_name = re.sub(invalid_file_chars, " ", video['title'])
                 video_slug = video['slug']
                 video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                             '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
                     .format(course, video_slug)
                 r = requests.get(video_url, cookies=cookies, headers=headers)                
                 video_index += 1
+                #Download videos
                 try:
                     download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
                     #print 'Searching-URL: "%s"' % download_url
                 except:
-                    print ('[!] ------ Can\'t download the video "%s", probably is only for premium users' % video_name)
+                    print ('[!] ------ Can\'t download the video "%s", probably is only for premium users. Check full access in browser' % video_name)
                 else:
-                    file_path = 'out/%s (%s)/%s - %s' % (course_name,course_releasedate,str(chapter_index),chapter_name)
-                    file_name = '%s - %s' % (str(video_index), video_name)
-                    file_type_video = '.mp4'
+                    file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index),chapter_name)
+                    file_name = '%s - %s' % (str(video_index), video_name)                    
                     print ('[*] ------ Downloading video #%s "%s"' % (str(video_index), video_name))
                     if os.path.exists(file_path + '/' + file_name + file_type_video):
                         print '[!]          ->video file already present, now checking subtitle existence'                    
                     else:
-                        #print 'Video-URL: "%s"' % download_url
                         download_file(download_url, file_path, file_name + file_type_video)
+                #Download subtitles
                 try:
                     subtitles = r.json()['elements'][0]['selectedVideo']['transcript']['lines']
                 except:
                     print('[*] ------ No subtitles available')
-                else:
-                    file_type_srt = '.srt'
+                else:                    
                     print ('[*] ------ Downloading subtitles')
                     if os.path.exists(file_path + '/' + file_name + file_type_srt):
                         print('[!]          ->subtitle file already present, skipping to next')
-                    else:                        
-                        #print 'Video-URL: "%s"' % download_url
-                        download_subtitles(file_path + '/' + file_name + file_type_srt)
+                    else:
+                        download_subtitles(file_path, file_name + file_type_srt)
                 print("")
     print '[*] __________ Finished course "%s" __________' % course_name
                     
