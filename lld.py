@@ -179,6 +179,9 @@ if __name__ == '__main__':
         #print 'Course-URL: "%s"' % course_api_url
         r = requests.get(course_api_url, cookies=cookies, headers=headers)
         #print 'Response from Server: %s' % r        
+        if r.json()['status'] == 404:
+            print('[!] Server-Reponse: 404. Mostly caused by user failure when providing a wrong course slug in config file.\n[!] Check for errors like: course-title-xyz/setting-up-the-abc. Only course slug is allowed.')
+            exit(0);
         course_title = cleanup_string(r.json()['elements'][0]['title'])
         course_description = r.json()['elements'][0]['description']
         fullCourseUnlocked = r.json()['elements'][0]['fullCourseUnlocked']
