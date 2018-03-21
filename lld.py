@@ -101,9 +101,10 @@ def download_file(url, file_path, file_name):
             for chunk in reply.iter_content(chunk_size=1024):
                 if chunk:
                     f.write(chunk)    
-    except:
+    except Exception as e:
         print 'Error. Deleting last incomplete file. Also check last created file manually for integrity'
         os.remove(file_path + '/' + file_name)     
+        print(e)
 
                 
 def to_hhmmssms(ms):
@@ -141,9 +142,10 @@ def download_subtitles(file_path, file_name):
                 index_next_subtitle+=1                        
         subtitle_file.close()
         
-    except:
+    except Exception as e:
         print 'Error. Deleting last incomplete file. Also check last created file manually for integrity'
         os.remove(file_path + '/' + file_name)     
+        print(e)
 
 def download_description(file_path, file_name, description, course_url):
     if not os.path.exists(file_path):
@@ -155,9 +157,10 @@ def download_description(file_path, file_name, description, course_url):
             description_file.write('Link: %s' % course_url)
         description_file.close()
         
-    except:
+    except Exception as e:
         print 'IO error. Deleting last incomplete file. Also check last created file manually for integrity'
         os.remove(file_path + '/' + file_name)     
+        print(e)
 
         
         
@@ -180,10 +183,12 @@ if __name__ == '__main__':
         r = requests.get(course_api_url, cookies=cookies, headers=headers)
         #print 'Response from Server: %s' % r        
         try:
-            course_title = cleanup_string(r.json()['elements'][0]['title'])
+            course_name = cleanup_string(r.json()['elements'][0]['title'])
         except:
             if r.json()['status'] == 404:
                 print('[!] Server-Reponse: 404. Mostly caused by user failure when providing a wrong course slug in config file.\n[!] Check for errors like: course-title-xyz/setting-up-the-abc. Only course slug is allowed.')
+            if r.json()['status'] == 429:
+                print("[!] Server-Reponse: 429 (Too Many Requests). Thus your account has been temporarily blocked by LinkedIn.\n[!] Try again in 12 hours. Each new made request in that time will reset and/or double the waiting time.")
             exit(0);
         else:
             course_description = r.json()['elements'][0]['description']
@@ -193,8 +198,8 @@ if __name__ == '__main__':
                 #for future use: tag/name of updated-element unknown on LinkedIn Learning so far. If known, use the newer Update date for course-folder instead of old initial release date
                 #course_updatedate_unix = 
                 #course_updatedate_
-            course_folder_path = '%s/%s (%s)' % (base_download_path, course_title, course_releasedate)
-            print '[*] __________ Starting download of course "%s" __________' % course_title        
+            course_folder_path = '%s/%s (%s)' % (base_download_path, course_name, course_releasedate)
+            print '[*] __________ Starting download of course "%s" __________' % course_name        
             #Check if access to full course
             if fullCourseUnlocked == True:
                 print('[*] Access to full course is GRANTED :). Start downloading.\n')
@@ -233,7 +238,7 @@ if __name__ == '__main__':
                 videos = chapter['videos']
                 video_index = 0
                 chapter_index +=1
-                print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index), chapter_name)
+                print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index).zfill(2), chapter_name)
                 print ('[*] --- [%d videos found]' % len(videos))
                 #Videos
                 for video in videos:
@@ -248,12 +253,15 @@ if __name__ == '__main__':
                     try:
                         download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
                         #print 'Searching-URL: "%s"' % download_url
-                    except:
+                    except Exception as e:        
                         print ('[!] ------ Can\'t download the video "%s", probably is only for premium users. Check full access in browser' % video_name)
+                        print(e)
                     else:
-                        file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index),chapter_name)
-                        file_name = '%s - %s' % (str(video_index), video_name)                    
-                        print ('[*] ------ Downloading video #%s "%s"' % (str(video_index), video_name))
+                        #
+                        #.zfill(2) wieder hinzufügen nach dem Verifying der bisherigen Downloads!!
+                        file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index).zfill(2),chapter_name)
+                        file_name = '%s - %s' % (str(video_index).zfill(2), video_name)                    
+                        print ('[*] ------ Downloading video #%s "%s"' % (str(video_index).zfill(2), video_name))
                         if os.path.exists(file_path + '/' + file_name + file_type_video):
                             print '[!]          ->video file already existing, now checking subtitle existence'                    
                         else:
@@ -261,8 +269,9 @@ if __name__ == '__main__':
                     #Download subtitles
                     try:
                         subtitles = r.json()['elements'][0]['selectedVideo']['transcript']['lines']
-                    except:
+                    except Exception as e:
                         print('[*] ------ No subtitles available')
+                        print(e)
                     else:                    
                         print ('[*] ------ Downloading subtitles')
                         if os.path.exists(file_path + '/' + file_name + file_type_srt):
@@ -270,5 +279,5 @@ if __name__ == '__main__':
                         else:
                             download_subtitles(file_path, file_name + file_type_srt)
                     print("")
-        print '[*] __________ Finished course "%s" __________' % course_title
+        print '[*] __________ Finished course "%s" __________' % course_name
                     
