@@ -6,21 +6,14 @@
 
 ### A scraping tool that downloads video lessons from Linkedin Learning
 Features:
--Implemented in python using requests.
-
--Downloading complete courses, i.e. course description inkl. original course url, videos, exercise files, subtitles.
-
--Easy adding of courses to download list
-
--Skipping existing downloads and completing incomplete courses.
-
--Unchecking of successfully downloaded courses on your download list, therefore providing some kind of archive.
-
--Numbering of chapters, videos and subtitles.
-
--Subtitles will have the same name as the video file, so players like MPC-HC will automatically load the subtitles when playing a video file.
-
--Course folder includes release date, because courses sometimes get updated and you don't know which version you already downloaded.
+* Implemented in python using requests.
+* Downloading complete courses, i.e. course description inkl. original course url, videos, exercise files, subtitles.
+* Easy adding of courses to download list
+* Skipping existing downloads and completing incomplete courses.
+* Unchecking of successfully downloaded courses on your download list, therefore providing some kind of archive.
+* Numbering of chapters, videos and subtitles.
+* Subtitles will have the same name as the video file, so players like MPC-HC will automatically load the subtitles when playing a video file.
+* Course folder includes release date, because courses sometimes get updated and you don't know which version you already downloaded.
 
 ### How to use
 First install the requirements:
@@ -41,7 +34,7 @@ COURSES = [
 
 1. Enter your login info and download path.
 
-2. You have two methods to add courses:
+2. You have two ways to add courses:
 
    a. New way: Just add them via LinkedIn (app or browser) to your bookmarks. The tool will parse your LinkedIn bookmarks (https://www.linkedin.com/learning/me/saved) at runtime.
 
@@ -51,10 +44,10 @@ COURSES = [
 The app will add the parsed bookmarks to the config file after checking for duplicates.
 You use both methods parallel. 
 
-Skipping existing downloads: 
+*Skipping existing downloads:* 
 If you already downloaded a course, the app will check the Download Path for existence of each to-be-downloaded-course and all subfolder and files, thus excluding duplicates. Files (couse-videos, exercise files, subtitles or course descriptions) which do not exist will be downloaded and therefore complete an unfinished course.
 
-Unchecking downloaded courses: 
+*Unchecking downloaded courses:*
 After successfully downloading a course, the course will be disabled in the config file (Download list) by putting a "#" in front of the course. If you want to check courses for integrity again, just remove the "#" and the next time when running the app it will check the enabled courses (see above).
 
 
