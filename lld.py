@@ -173,10 +173,10 @@ def parse_bookmarks():
         for course in course_elements:
             course_slug = course['content']['com.linkedin.learning.api.ListedCourse']['slug']
             for line in prev_contents:                
-                if course_slug in line: #do nothing, go to searching for next course-slug (outer loop)
+                if course_slug in line: #do nothing, go searching for next course-slug (outer loop)
                     break
-            else:   #else-after-forloop: if course-slug not found in any line/iteration, add zjis course-slug
-                prev_contents.insert(len(prev_contents)-1, "    '" + course_slug + "',\n") #Now prev_contents is a list of strings and you may add the new line to this list at any position
+            else:   #else-after-forloop: if course-slug not found in any line/iteration, add this course-slug
+                prev_contents.insert(len(prev_contents)-1, "    '" + course_slug + "',\n")
         config_file_new.writelines(prev_contents)
     #reload edited config file
     reload(config)
