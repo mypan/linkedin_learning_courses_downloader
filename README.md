@@ -42,12 +42,13 @@ COURSES = [
 1. Enter your login info and download path.
 
 2. You have two methods to add courses:
-a. New way: Just add them via LinkedIn (app or browser) to your bookmarks. The tool will parse your LinkedIn bookmarks (https://www.linkedin.com/learning/me/saved) at runtime.
 
-b. Old way: Fill the `COURSES` array with the slug of the the courses you want to download and save the config file, for example:
+   a. New way: Just add them via LinkedIn (app or browser) to your bookmarks. The tool will parse your LinkedIn bookmarks (https://www.linkedin.com/learning/me/saved) at runtime.
+
+   b. Old way: Fill the `COURSES` array with the slug of the the courses you want to download and save the config file, for example:
 `https://www.linkedin.com/learning/it-security-foundations-core-concepts/ -> it-security-foundations-core-concepts`
 
-The app will add parsed bookmark-courses to the config file after checking for duplicates before.
+The app will add the parsed bookmarks to the config file after checking for duplicates.
 You use both methods parallel. 
 
 Skipping existing downloads: 
