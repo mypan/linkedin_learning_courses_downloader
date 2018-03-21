@@ -8,6 +8,7 @@ import config
 import requests
 import re
 import time
+import math
 from bs4 import BeautifulSoup
 
 reload(sys)
@@ -164,22 +165,33 @@ def download_description(file_path, file_name, description, course_url):
 
  
 def parse_bookmarks():
-    bookmarks_api_url = 'https://www.linkedin.com/learning-api/listedBookmarks?q=listedBookmarks'
-    r = requests.get(bookmarks_api_url, cookies=cookies, headers=headers)
-    course_elements  = r.json()['elements']
-    with open("config.py", "r") as config_file:
-        prev_contents = config_file.readlines()        
-    with open("config.py", "w") as config_file_new: #new config file replacing old        
-        for course in course_elements:
-            course_slug = course['content']['com.linkedin.learning.api.ListedCourse']['slug']
-            for line in prev_contents:                
-                if course_slug in line: #do nothing, go searching for next course-slug (outer loop)
-                    break
-            else:   #else-after-forloop: if course-slug not found in any line/iteration, add this course-slug
-                prev_contents.insert(len(prev_contents)-1, "    '" + course_slug + "',\n")
-        config_file_new.writelines(prev_contents)
+    #LinkedIn is only providing 10 bookmarked courses at a time, api has to be triggered several times
+    #First: get amount of bookmarked courses by using extraordinary number (don't know any other apicall to do so for now)
+    bookmarks_api_url = 'https://www.linkedin.com/learning-api/listedBookmarks?q=listedBookmarks&start='        
+    req = requests.get(bookmarks_api_url+str(3000), cookies=cookies, headers=headers)
+    bookmarked_courses_number = req.json()['paging']['total']
+    print("[*] Total number of online bookmarked courses: %s" % bookmarked_courses_number)
+    bookmarked_courses_number_rounded = int(math.ceil(bookmarked_courses_number / 10.0)) * 10 #round number of bookmarks to next tenner
+    needed_loops = bookmarked_courses_number_rounded / 10 #needed loops/api calls with each receiving 10 bookmarks
+    start=0 #start with bookmarks 0-10
+    while start < bookmarked_courses_number_rounded:
+        r = requests.get(bookmarks_api_url + str(start), cookies=cookies, headers=headers)
+        course_elements  = r.json()['elements']
+        with open("config.py", "r") as config_file: #copy everything from old config to memory for easier inserting new lines in center of file
+            prev_contents = config_file.readlines()        
+        with open("config.py", "w") as config_file_new: #new config file replacing old        
+            for course in course_elements:            
+                course_slug = course['content']['com.linkedin.learning.api.ListedCourse']['slug']
+                for line in prev_contents:                
+                    if course_slug in line: #do nothing, go searching for next course-slug (outer loop)
+                        break
+                else:   #else-after-forloop: if course-slug not found in any line/iteration, add this course-slug (before the "]")
+                    prev_contents.insert(len(prev_contents)-1, "    '" + course_slug + "',\n")
+            config_file_new.writelines(prev_contents)
+        start+=10 #get next round of 10 bookmarks
     #reload edited config file
     reload(config)
+    
         
     
 def comment_out_finished_course(course_slug):    
@@ -282,8 +294,7 @@ if __name__ == '__main__':
                     video_name = cleanup_string (video['title'])
                     video_slug = video['slug']
                     video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
-                                '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
-                        .format(course, video_slug)
+                                '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'.format(course, video_slug)
                     r = requests.get(video_url, cookies=cookies, headers=headers)                
                     video_index += 1
                     #Download videos
