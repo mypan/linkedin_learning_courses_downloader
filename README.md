@@ -38,6 +38,7 @@ COURSES = [
     'javascript-for-web-designers-2'
 ]
 ```
+
 1. Enter your login info and download path.
 
 2. You have two methods to add courses:
