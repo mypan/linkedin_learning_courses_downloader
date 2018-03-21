@@ -162,7 +162,38 @@ def download_description(file_path, file_name, description, course_url):
         os.remove(file_path + '/' + file_name)     
         print(e)
 
+ 
+def parse_bookmarks():
+    bookmarks_api_url = 'https://www.linkedin.com/learning-api/listedBookmarks?q=listedBookmarks'
+    r = requests.get(bookmarks_api_url, cookies=cookies, headers=headers)
+    course_elements  = r.json()['elements']
+    with open("config.py", "r") as config_file:
+        prev_contents = config_file.readlines()        
+    with open("config.py", "w") as config_file_new: #new config file replacing old        
+        for course in course_elements:
+            course_slug = course['content']['com.linkedin.learning.api.ListedCourse']['slug']
+            for line in prev_contents:                
+                if course_slug in line: #do nothing, go to searching for next course-slug (outer loop)
+                    break
+            else:   #else-after-forloop: if course-slug not found in any line/iteration, add zjis course-slug
+                prev_contents.insert(len(prev_contents)-1, "    '" + course_slug + "',\n") #Now prev_contents is a list of strings and you may add the new line to this list at any position
+        config_file_new.writelines(prev_contents)
+    #reload edited config file
+    reload(config)
         
+    
+def comment_out_finished_course(course_slug):    
+    with open("config.py", "r") as config_file:
+        prev_contents = config_file.readlines()        
+    with open("config.py", "w") as config_file_new: #new config file replacing old        
+        for i, line in enumerate(prev_contents):
+            if course_slug in line:
+                prev_contents[i] = line[:4] + "#" + line[4:]
+        config_file_new.writelines(prev_contents)
+    #reload edited config file
+    reload(config)
+
+ 
         
 if __name__ == '__main__':
     cookies = authenticate()
@@ -172,7 +203,13 @@ if __name__ == '__main__':
     file_type_video = '.mp4'
     file_type_srt = '.srt'
     #file_type_exercise = '.zip' #no need for that, extracted filename already contains the filetype
-    file_type_description = '.txt'
+    file_type_description = '.txt'   
+    
+    #Read bookmarks and add them to config file (this way you can still use the manual way of adding courses). Then reload config file.
+    bookmarked_courses = parse_bookmarks()   
+    
+    
+    
     #Courses
     for course in config.COURSES:
         print('\n')
@@ -279,5 +316,8 @@ if __name__ == '__main__':
                         else:
                             download_subtitles(file_path, file_name + file_type_srt)
                     print("")
+        #automatically comment course out from download list in config file
+        comment_out_finished_course(course)
+        
         print '[*] __________ Finished course "%s" __________' % course_name
                     
