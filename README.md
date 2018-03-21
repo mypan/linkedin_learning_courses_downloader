@@ -7,12 +7,19 @@
 ### A scraping tool that downloads video lessons from Linkedin Learning
 Features:
 -Implemented in python using requests.
+
 -Downloading complete courses, i.e. course description inkl. original course url, videos, exercise files, subtitles.
+
 -Easy adding of courses to download list
+
 -Skipping existing downloads and completing incomplete courses.
+
 -Unchecking of successfully downloaded courses on your download list, therefore providing some kind of archive.
+
 -Numbering of chapters, videos and subtitles.
+
 -Subtitles will have the same name as the video file, so players like MPC-HC will automatically load the subtitles when playing a video file.
+
 -Course folder includes release date, because courses sometimes get updated and you don't know which version you already downloaded.
 
 ### How to use
