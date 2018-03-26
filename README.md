@@ -10,6 +10,8 @@ Features:
 * Downloading complete courses, i.e. course description inkl. original course url, videos, exercise files, subtitles.
 * Easy adding of courses to download list
 * Skipping existing downloads and completing incomplete courses.
+* Backwards compatible with previous folder structure and naming convention
+    * Use it to complete previous downloads and change the naming of folder and files.
 * Unchecking of successfully downloaded courses on your download list, therefore providing some kind of archive.
 * Numbering of chapters, videos and subtitles.
 * Subtitles will have the same name as the video file, so players like MPC-HC will automatically load the subtitles when playing a video file.
