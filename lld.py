@@ -9,6 +9,8 @@ import requests
 import re
 import time
 import math
+import glob
+import string
 from bs4 import BeautifulSoup
 
 reload(sys)
@@ -205,7 +207,55 @@ def comment_out_finished_course(course_slug):
     #reload edited config file
     reload(config)
 
- 
+def extractName(namestring):
+    # get name with just alphabets
+    ind = 0
+    iterator = 0
+    for ch in namestring:
+        if ch in string.ascii_letters:
+            ind = iterator
+            break
+        iterator += 1
+    namestring = namestring.replace('- ', ' ') # some new video names have '- ' in them but old ones don't
+    namestring = namestring.replace('.', ' ') # some new folder names have '.' in them but old ones don't
+    return namestring[ind:]
+
+def renameOldFolder(course_folder_path, chapter_index, chapter_name, file_path):
+    # check if old type chapter folder is present; if present rename it
+    file_path_alternate = course_folder_path + '\\' + '%s - %s' % (str(chapter_index).zfill(2),chapter_name)
+    # print '\t checking if old type chapter folder is present; if present rename it'
+    # print '%s %s %s %s' %(course_folder_path, chapter_index, chapter_name, file_path)
+    if len(glob.glob(course_folder_path + '/*' + chapter_name)) < 1:
+        print '||\t Old Folder Not Found'
+        return
+    for file in glob.glob(course_folder_path + '/*' + chapter_name):
+        # course present
+        print file
+        print file_path
+        print file_path_alternate
+        if file != file_path and file != file_path_alternate:
+            # old chapter type - rename needed
+            os.rename(file, file_path)
+            print '\t Old type chapter folder FOUND - Rename successful'
+            # break
+
+def renameOldFile(file_path, extractedVideoName, file_type_video, file_path_full):
+    # check if old type video is present; if present rename it    
+    # print '\t check if old type video is present; if present rename it'    
+    file_path_full_alternate = file_path + '\\' + file_name + file_type_video # to match return value from glob.glob
+    if len(glob.glob(file_path + '/*' + extractedVideoName + file_type_video)) < 1:
+        print '||\t Old File Not Found'
+        return
+    for file in glob.glob(file_path + '/*' + extractedVideoName + file_type_video):
+        # video present
+        # print file
+        if file != file_path_full and file != file_path_full_alternate:
+            # old type video name - rename needed
+            os.rename(file, file_path_full)
+            print '\t Old type video file FOUND - Rename successful'
+            # break
+
+# runs = 0
         
 if __name__ == '__main__':
     cookies = authenticate()
@@ -248,13 +298,26 @@ if __name__ == '__main__':
                 #course_updatedate_unix = 
                 #course_updatedate_
             course_folder_path = '%s/%s (%s)' % (base_download_path, course_name, course_releasedate)
+
+            extractedCourseName = extractName(course_name)
+            course_folder_path_old = '%s/%s' % (base_download_path, extractedCourseName) # old version of path to course
+            # course_dir_structure_old = False
+
             print '[*] __________ Starting download of course "%s" __________' % course_name        
             #Check if access to full course
             if fullCourseUnlocked == True:
                 print('[*] Access to full course is GRANTED :). Start downloading.\n')
             else:
                 print('[!] Access to full course is DENIED ):. Check login data and/or premium-status of account. Trying next course.\n')
-                continue        
+                continue   
+            
+            # if old type name course folder is present rename it
+            if os.path.exists(course_folder_path_old):
+                # course_dir_structure_old = True
+                print '** Course directory structure is old **\n\t Renaming Course Folder \n'
+                os.rename(course_folder_path_old, course_folder_path) # will not work on windows if new type folder is already present.
+                print '\t[!] Rename Successful\n'
+                 
             #Download course description
             if os.path.exists(course_folder_path + '/' + 'Description' + file_type_description):
                     print '[!] Description file: already existing.\n'                    
@@ -289,6 +352,15 @@ if __name__ == '__main__':
                 chapter_index +=1
                 print ('[*] --- Parsing chapter #%s "%s" for videos') % (str(chapter_index).zfill(2), chapter_name)
                 print ('[*] --- [%d videos found]' % len(videos))
+
+                file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index).zfill(2),chapter_name) # Folder path of current chapter (new naming convention)
+
+                extractedName = extractName(chapter_name)
+
+                if not os.path.exists(file_path):
+                    print '||\t New folder not found. Checking for old folder'                    
+                    renameOldFolder(course_folder_path, chapter_index, extractedName, file_path)
+
                 #Videos
                 for video in videos:
                     video_name = cleanup_string (video['title'])
@@ -307,8 +379,18 @@ if __name__ == '__main__':
                     else:
                         #
                         #.zfill(2) wieder hinzufügen nach dem Verifying der bisherigen Downloads!!
-                        file_path = course_folder_path + '/' + '%s - %s' % (str(chapter_index).zfill(2),chapter_name)
-                        file_name = '%s - %s' % (str(video_index).zfill(2), video_name)                    
+                            #.zfill(2) Add again after verifying the previous Downloads!!
+
+                        file_name = '%s - %s' % (str(video_index).zfill(2), video_name)          
+
+                        file_path_full = file_path + '/' + file_name + file_type_video
+
+                        extractedVideoName = extractName(video_name)
+
+                        if not os.path.exists(file_path_full):
+                            print '||\t New file not found. Checking for old file'
+                            renameOldFile(file_path, extractedVideoName, file_type_video, file_path_full)
+                                            
                         print ('[*] ------ Downloading video #%s "%s"' % (str(video_index).zfill(2), video_name))
                         if os.path.exists(file_path + '/' + file_name + file_type_video):
                             print '[!]          ->video file already existing, now checking subtitle existence'                    
@@ -326,6 +408,10 @@ if __name__ == '__main__':
                             print('[!]          ->subtitle file already existing, skipping to next')
                         else:
                             download_subtitles(file_path, file_name + file_type_srt)
+                        # runs += 1
+                        # if runs % 10 == 0:
+                        #     print '================= %d videos done' % runs
+                        #     # sys.exit(0)
                     print("")
         #automatically comment course out from download list in config file
         comment_out_finished_course(course)
