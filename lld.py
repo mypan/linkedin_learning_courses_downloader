@@ -98,7 +98,6 @@ def download_file(url, file_path, file_name):
     reply = requests.get(url, stream=True)
     if not os.path.exists(file_path):
         os.makedirs(file_path)
-    #print(file_path + '/' + file_name)    
     try:
         with open(file_path + '/' + file_name, 'wb') as f:
             for chunk in reply.iter_content(chunk_size=1024):
@@ -223,8 +222,6 @@ def extractName(namestring):
 def renameOldFolder(course_folder_path, chapter_index, chapter_name, file_path):
     # check if old type chapter folder is present; if present rename it
     file_path_alternate = course_folder_path + '\\' + '%s - %s' % (str(chapter_index).zfill(2),chapter_name)
-    # print '\t checking if old type chapter folder is present; if present rename it'
-    # print '%s %s %s %s' %(course_folder_path, chapter_index, chapter_name, file_path)
     if len(glob.glob(course_folder_path + '/*' + chapter_name)) < 1:
         print '||\t Old Folder Not Found'
         return
@@ -241,14 +238,12 @@ def renameOldFolder(course_folder_path, chapter_index, chapter_name, file_path):
 
 def renameOldFile(file_path, extractedVideoName, file_type_video, file_path_full):
     # check if old type video is present; if present rename it    
-    # print '\t check if old type video is present; if present rename it'    
     file_path_full_alternate = file_path + '\\' + file_name + file_type_video # to match return value from glob.glob
     if len(glob.glob(file_path + '/*' + extractedVideoName + file_type_video)) < 1:
         print '||\t Old File Not Found'
         return
     for file in glob.glob(file_path + '/*' + extractedVideoName + file_type_video):
         # video present
-        # print file
         if file != file_path_full and file != file_path_full_alternate:
             # old type video name - rename needed
             os.rename(file, file_path_full)
@@ -267,13 +262,10 @@ if __name__ == '__main__':
         'out'
     file_type_video = '.mp4'
     file_type_srt = '.srt'
-    #file_type_exercise = '.zip' #no need for that, extracted filename already contains the filetype
-    file_type_description = '.txt'   
+    file_type_description = '.txt'
     
     #Read bookmarks and add them to config file (this way you can still use the manual way of adding courses). Then reload config file.
-    bookmarked_courses = parse_bookmarks()   
-    
-    
+    bookmarked_courses = parse_bookmarks()
     
     #Courses
     for course in config.COURSES:
@@ -281,9 +273,7 @@ if __name__ == '__main__':
         #Request important course data fields
         course_api_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                      '??fields=fullCourseUnlocked,releasedOn,exerciseFileUrls,exerciseFiles&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
-        #print 'Course-URL: "%s"' % course_api_url
         r = requests.get(course_api_url, cookies=cookies, headers=headers)
-        #print 'Response from Server: %s' % r        
         try:
             course_name = cleanup_string(r.json()['elements'][0]['title'])
         except:
@@ -304,7 +294,6 @@ if __name__ == '__main__':
 
             extractedCourseName = extractName(course_name)
             course_folder_path_old = '%s/%s' % (base_download_path, extractedCourseName) # old version of path to course
-            # course_dir_structure_old = False
 
             print '[*] __________ Starting download of course "%s" __________' % course_name        
             #Check if access to full course
@@ -316,7 +305,6 @@ if __name__ == '__main__':
             
             # if old type name course folder is present rename it
             if os.path.exists(course_folder_path_old):
-                # course_dir_structure_old = True
                 print '** Course directory structure is old **\n\t Renaming Course Folder \n'
                 os.rename(course_folder_path_old, course_folder_path) # will not work on windows if new type folder is already present.
                 print '\t[!] Rename Successful\n'
@@ -375,19 +363,13 @@ if __name__ == '__main__':
                     #Download videos
                     try:
                         download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
-                        #print 'Searching-URL: "%s"' % download_url
-                    except Exception as e:        
+                    except Exception as e:
                         print ('[!] ------ Can\'t download the video "%s", probably is only for premium users. Check full access in browser' % video_name)
                         print(e)
                     else:
-                        #
-                        #.zfill(2) wieder hinzufügen nach dem Verifying der bisherigen Downloads!!
-                            #.zfill(2) Add again after verifying the previous Downloads!!
 
-                        file_name = '%s - %s' % (str(video_index).zfill(2), video_name)          
-
+                        file_name = '%s - %s' % (str(video_index).zfill(2), video_name)
                         file_path_full = file_path + '/' + file_name + file_type_video
-
                         extractedVideoName = extractName(video_name)
 
                         if not os.path.exists(file_path_full):
@@ -411,11 +393,7 @@ if __name__ == '__main__':
                             print('[!]          ->subtitle file already existing, skipping to next')
                         else:
                             download_subtitles(file_path, file_name + file_type_srt)
-                        # runs += 1
-                        # if runs % 10 == 0:
-                        #     print '================= %d videos done' % runs
-                        #     # sys.exit(0)
-                    print("")
+                    print('')
         #automatically comment course out from download list in config file
         comment_out_finished_course(course)
         
