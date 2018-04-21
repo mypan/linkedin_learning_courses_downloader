@@ -37,6 +37,7 @@ def login():
                     'loginCsrfParam': csrf,
                 })
     load_page(opener, 'https://www.linkedin.com/uas/login-submit', login_data)
+    print cookie_jar._cookies
     try:
         cookie = cookie_jar._cookies['.www.linkedin.com']['/']['li_at'].value
     except:
@@ -259,7 +260,7 @@ if __name__ == '__main__':
     if config.BASE_DOWNLOAD_PATH != '':
         base_download_path = config.BASE_DOWNLOAD_PATH
     else:
-        'out'
+        base_download_path = 'out'
     file_type_video = '.mp4'
     file_type_srt = '.srt'
     file_type_description = '.txt'
