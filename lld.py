@@ -261,7 +261,10 @@ if __name__ == '__main__':
     cookies = authenticate()
     headers = {'Csrf-Token': 'ajax:4332914976342601831'}
     cookies['JSESSIONID'] = 'ajax:4332914976342601831'
-    base_download_path = config.BASE_DOWNLOAD_PATH
+    if config.BASE_DOWNLOAD_PATH != '':
+        base_download_path = config.BASE_DOWNLOAD_PATH
+    else:
+        'out'
     file_type_video = '.mp4'
     file_type_srt = '.srt'
     #file_type_exercise = '.zip' #no need for that, extracted filename already contains the filetype
