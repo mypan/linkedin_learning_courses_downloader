@@ -134,6 +134,8 @@ class Lld:
                 chapter_name = self.format_string(chapter['title'])
                 logging.info('Starting download of chapter [%s]...' % chapter_name)
                 chapter_path = '%s/%s - %s' % (course_path, str(chapter_index).zfill(2), chapter_name)
+                if chapter_name == '':
+                    chapter_path = chapter_path[:-3]
                 videos_list = chapter['videos']
                 video_index = 1
                 logging.info('Parsing chapters\'s videos')
