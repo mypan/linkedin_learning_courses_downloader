@@ -148,6 +148,7 @@ class Lld:
                         video_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', video_data.text).group(1)
                     except:
                         logging.error('Can\'t download the video [%s], probably is only for premium users' % video_name)
+                        continue
                     logging.info('Downloading video [%s]' % video_name)
                     self.download_file(video_url, chapter_path, '%s - %s.mp4' % (str(video_index).zfill(2), video_name))
                     video_data = video_data.json()['elements'][0]
