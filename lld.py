@@ -162,8 +162,8 @@ class Lld:
                             self.download_sub(subs, chapter_path, '%s - %s.srt' % (str(video_index).zfill(2), video_name))
                     video_index += 1
                 chapter_index += 1
-                exercises_list = course_data['exerciseFiles']
 
+            exercises_list = course_data['exerciseFiles']
             for exercise in exercises_list:
                 try:
                     ex_name = exercise['name']
