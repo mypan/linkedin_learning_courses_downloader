@@ -164,14 +164,14 @@ class Lld:
                 chapter_index += 1
                 exercises_list = course_data['exerciseFiles']
 
-                for exercise in exercises_list:
-                    try:
-                        ex_name = exercise['name']
-                        ex_url = exercise['url']
-                    except (KeyError, IndexError):
-                        logging.info('Can\'t download an exercise file for course [%s]' % course_name)
-                    else:
-                         self.download_file(ex_url, course_path, ex_name)
+            for exercise in exercises_list:
+                try:
+                    ex_name = exercise['name']
+                    ex_url = exercise['url']
+                except (KeyError, IndexError):
+                    logging.info('Can\'t download an exercise file for course [%s]' % course_name)
+                else:
+                     self.download_file(ex_url, course_path, ex_name)
             description = course_data['description']
             logging.info('Downloading course description')
             self.download_desc(description, 'https://www.linkedin.com/learning/%s' % course, course_path, 'Description.txt')
