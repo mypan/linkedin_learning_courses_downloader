@@ -162,13 +162,16 @@ class Lld:
                             self.download_sub(subs, chapter_path, '%s - %s.srt' % (str(video_index).zfill(2), video_name))
                     video_index += 1
                 chapter_index += 1
-            try:
-                ex_name = course_data['excerciseFiles'][0]['name']
-                ex_url = course_data['excerciseFiles'][0]['url']
-            except KeyError:
-                logging.info('Can\'t download excercise files for course [%s]' % course_name)
-            else:
-                self.download_file(ex_url, course_path, ex_name)
+                exercises_list = course_data['exerciseFiles']
+
+                for exercise in exercises_list:
+                    try:
+                        ex_name = exercise['name']
+                        ex_url = exercise['url']
+                    except (KeyError, IndexError):
+                        logging.info('Can\'t download an exercise file for course [%s]' % course_name)
+                    else:
+                         self.download_file(ex_url, course_path, ex_name)
             description = course_data['description']
             logging.info('Downloading course description')
             self.download_desc(description, 'https://www.linkedin.com/learning/%s' % course, course_path, 'Description.txt')
