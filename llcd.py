@@ -7,6 +7,7 @@ import config
 import requests
 import re
 from bs4 import BeautifulSoup
+from time import time
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -63,7 +64,7 @@ def load_page(opener, url, data=None):
     try:
         response = opener.open(url)
     except:
-        print '[Fatal] Your IP may have been temporarily blocked'
+        print '\n ##################################\n ##################################\n **********************************\n\n [Fatal] Your IP may have been temporarily blocked'
 
     try:
         if data is not None:
@@ -98,6 +99,7 @@ if __name__ == '__main__':
         course_name = r.json()['elements'][0]['title']
         course_name = re.sub(r'[\\/*?:"<>|]', "", course_name)
         chapters = r.json()['elements'][0]['chapters']
+        chapterStartTime = time()
         print '[*] Parsing "%s" course\'s chapters' % course_name
         print '[*] [%d chapters found]' % len(chapters)
         for chapter in chapters:
@@ -121,4 +123,6 @@ if __name__ == '__main__':
                 else:
                     print '[*] ------ Downloading video "%s"' % video_name
                     download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' % (str(vc), video_name))
+        chapterEndTime= time()
+        print '\n ##################################\n ##################################\n **********************************\n\n The total time taken to download [%d chapters]' % len(chapters) + 'is', chapterEndTime-chapterStartTime              
 
