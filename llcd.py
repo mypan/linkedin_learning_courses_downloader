@@ -24,9 +24,9 @@ def login():
                 urllib2.HTTPCookieProcessor(cookie_jar)
             )
 
-    html = load_page(opener, 'https://www.linkedin.com/')
+    html = load_page(opener, 'https://www.linkedin.com/login')
     soup = BeautifulSoup(html, 'html.parser')
-    csrf = soup.find(id='loginCsrfParam-login')['value']
+    csrf = soup.find('input', {'name': 'loginCsrfParam'}).get('value')
 
     login_data = urllib.urlencode({
                     'session_key': config.USERNAME,
