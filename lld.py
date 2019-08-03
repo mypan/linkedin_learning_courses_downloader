@@ -101,7 +101,7 @@ class Lld:
     def get_logged_session(self):
         logging.info('Authenticating to LinkedIn')
         login_page = BeautifulSoup(self.session.get(login_url).text, 'html.parser')
-        csrf = login_page.find(id='loginCsrfParam-login')['value']
+        csrf = login_page.find('input', {'name' : 'loginCsrfParam'})['value']
         logging.info('Csfr token: %s' % csrf)
         login_data = urllib.urlencode(
             {'session_key': config.USERNAME, 'session_password': config.PASSWORD, 'isJsEnabled': 'false',
