@@ -144,6 +144,11 @@ class Lld:
                     video_name = self.format_string(video['title'])
                     video_slug = video['slug']
                     video_data = (self.session.get(video_api_url % (course, video_slug)))
+                    video_path = chapter_path + '/' + '%s - %s.mp4' % (str(video_index).zfill(2), video_name);
+                    if os.path.exists(video_path):
+                        logging.info('Skip video [%s] download because it already exists.' % video_name)
+                        video_index += 1
+                        continue
                     try:
                         video_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', video_data.text).group(1)
                     except:
