@@ -9,6 +9,7 @@ import os
 import string
 import config
 import logging
+import time
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -101,7 +102,7 @@ class Lld:
     def get_logged_session(self):
         logging.info('Authenticating to LinkedIn')
         login_page = BeautifulSoup(self.session.get(login_url).text, 'html.parser')
-        csrf = login_page.find(id='loginCsrfParam-login')['value']
+        csrf = login_page.find('input', {'name' : 'loginCsrfParam'})['value']
         logging.info('Csfr token: %s' % csrf)
         login_data = urllib.urlencode(
             {'session_key': config.USERNAME, 'session_password': config.PASSWORD, 'isJsEnabled': 'false',
@@ -121,8 +122,9 @@ class Lld:
         self.session.headers.pop('Accept')
 
         for course in config.COURSES:
+            time.sleep(1)
             resp = self.session.get(course_api_url % course)
-            course_data = resp.json()['elements'][0]
+			course_data = resp.json()['elements'][0]
             course_name = self.format_string(course_data['title'])
             logging.info('Starting download of course [%s]...' % course_name)
             course_path = '%s/%s' % (self.base_path, course_name)
@@ -131,6 +133,7 @@ class Lld:
             logging.info('Parsing course\'s chapters...')
             logging.info('%d chapters found' % len(chapters_list))
             for chapter in chapters_list:
+                time.sleep(1)
                 chapter_name = self.format_string(chapter['title'])
                 logging.info('Starting download of chapter [%s]...' % chapter_name)
                 chapter_path = '%s/%s - %s' % (course_path, str(chapter_index).zfill(2), chapter_name)
@@ -141,6 +144,7 @@ class Lld:
                 logging.info('Parsing chapters\'s videos')
                 logging.info('%d videos found' % len(videos_list))
                 for video in videos_list:
+                    time.sleep(1)
                     video_name = self.format_string(video['title'])
                     video_slug = video['slug']
                     video_data = (self.session.get(video_api_url % (course, video_slug)))
