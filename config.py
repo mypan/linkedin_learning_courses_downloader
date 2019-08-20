@@ -2,7 +2,8 @@
 
 USERNAME = ''
 PASSWORD = ''
-
+BASE_DOWNLOAD_PATH = '' #use "/" as separators
+SUBS = True
 COURSES = [
     'it-security-foundations-core-concepts',
     'charlene-li-on-digital-leadership',
