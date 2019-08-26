@@ -26,7 +26,7 @@ def login():
 
     html = load_page(opener, 'https://www.linkedin.com/')
     soup = BeautifulSoup(html, 'html.parser')
-    csrf = soup.find(id='loginCsrfParam-login')['value']
+    csrf = soup.find('input', {'name': 'loginCsrfParam'}).get('value')
 
     login_data = urllib.urlencode({
                     'session_key': config.USERNAME,
