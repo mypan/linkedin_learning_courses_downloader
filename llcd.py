@@ -52,7 +52,7 @@ def authenticate():
         session = login()
         if len(session) == 0:
             sys.exit('[!] Unable to login to LinkedIn.com')
-        print '[*] Obtained new session: %s' % session
+        print('[*] Obtained new session: %s' % session)
         cookies = dict(li_at=session)
     except Exception, e:
         sys.exit('[!] Could not authenticate to linkedin. %s' % e)
@@ -63,7 +63,7 @@ def load_page(opener, url, data=None):
     try:
         response = opener.open(url)
     except:
-        print '[Fatal] Your IP may have been temporarily blocked'
+        print('[Fatal] Your IP may have been temporarily blocked')
 
     try:
         if data is not None:
@@ -72,7 +72,7 @@ def load_page(opener, url, data=None):
             response = opener.open(url)
         return ''.join(response.readlines())
     except:
-        print '[Notice] Exception hit'
+        print('[Notice] Exception hit')
         sys.exit(0)
 
 
@@ -91,21 +91,21 @@ if __name__ == '__main__':
     cookies['JSESSIONID'] = 'ajax:4332914976342601831'
 
     for course in config.COURSES:
-        print ''
+        print('')
         course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                      '??fields=videos&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
         r = requests.get(course_url, cookies=cookies, headers=headers)
         course_name = r.json()['elements'][0]['title']
         course_name = re.sub(r'[\\/*?:"<>|]', "", course_name)
         chapters = r.json()['elements'][0]['chapters']
-        print '[*] Parsing "%s" course\'s chapters' % course_name
-        print '[*] [%d chapters found]' % len(chapters)
+        print('[*] Parsing "%s" course\'s chapters' % course_name)
+        print('[*] [%d chapters found]' % len(chapters))
         for chapter in chapters:
             chapter_name = re.sub(r'[\\/*?:"<>|]', "", chapter['title'])
             videos = chapter['videos']
             vc = 0
-            print '[*] --- Parsing "%s" chapters\'s videos' % chapter_name
-            print '[*] --- [%d videos found]' % len(videos)
+            print('[*] --- Parsing "%s" chapters\'s videos' % chapter_name)
+            print('[*] --- [%d videos found]' % len(videos))
             for video in videos:
                 video_name = re.sub(r'[\\/*?:"<>|]', "", video['title'])
                 video_slug = video['slug']
@@ -117,8 +117,7 @@ if __name__ == '__main__':
                 try:
                     download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
                 except:
-                    print '[!] ------ Can\'t download the video "%s", probably is only for premium users' % video_name
+                    print('[!] ------ Can\'t download the video "%s", probably is only for premium users' % video_name)
                 else:
-                    print '[*] ------ Downloading video "%s"' % video_name
+                    print('[*] ------ Downloading video "%s"' % video_name)
                     download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' % (str(vc), video_name))
-
