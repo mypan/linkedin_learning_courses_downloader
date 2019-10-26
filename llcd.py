@@ -54,7 +54,7 @@ def authenticate():
             sys.exit('[!] Unable to login to LinkedIn.com')
         print '[*] Obtained new session: %s' % session
         cookies = dict(li_at=session)
-    except Exception, e:
+    except Exception as e:
         sys.exit('[!] Could not authenticate to linkedin. %s' % e)
     return cookies
 
@@ -121,4 +121,3 @@ if __name__ == '__main__':
                 else:
                     print '[*] ------ Downloading video "%s"' % video_name
                     download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' % (str(vc), video_name))
-
