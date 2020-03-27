@@ -24,46 +24,52 @@ def login():
                 urllib2.HTTPCookieProcessor(cookie_jar)
             )
 
-    html = load_page(opener, 'https://www.linkedin.com/')
+    html = load_page(opener, 'https://www.linkedin.com/checkpoint/lg/login')
     soup = BeautifulSoup(html, 'html.parser')
-    csrf = soup.find(id='loginCsrfParam-login')['value']
+
+
+    csrf = soup.find('input',{'name':'csrfToken'}).get('value')
+    loginCsrfParam = soup.find('input',{'name':'loginCsrfParam'}).get('value')
 
     login_data = urllib.urlencode({
                     'session_key': config.USERNAME,
                     'session_password': config.PASSWORD,
-                    'loginCsrfParam': csrf,
+                    'csrfToken': csrf,
+                    'loginCsrfParam': loginCsrfParam
                 })
 
-    load_page(opener, 'https://www.linkedin.com/uas/login-submit', login_data)
+    load_page(opener, 'https://www.linkedin.com/checkpoint/lg/login-submit', login_data)
 
     try:
         cookie = cookie_jar._cookies['.www.linkedin.com']['/']['li_at'].value
-    except:
+        jsessionid = ''
+        for ck in cookie_jar:
+            # print cookie.name, cookie.value, cookie.domain
+            if ck.name == 'JSESSIONID':
+                jsessionid = ck.value
+    except Exception, e:
+        print e
         sys.exit(0)
 
     cookie_jar.save()
     os.remove(cookie_filename)
 
-    return cookie
+    return cookie, csrf
 
 
 def authenticate():
     try:
-        session = login()
+        session, jsessionid = login()
         if len(session) == 0:
             sys.exit('[!] Unable to login to LinkedIn.com')
         print '[*] Obtained new session: %s' % session
-        cookies = dict(li_at=session)
+        cookies = dict(li_at=session, JSESSIONID=jsessionid)
     except Exception, e:
         sys.exit('[!] Could not authenticate to linkedin. %s' % e)
     return cookies
 
 
 def load_page(opener, url, data=None):
-    try:
-        response = opener.open(url)
-    except:
-        print '[Fatal] Your IP may have been temporarily blocked'
 
     try:
         if data is not None:
@@ -71,8 +77,9 @@ def load_page(opener, url, data=None):
         else:
             response = opener.open(url)
         return ''.join(response.readlines())
-    except:
+    except Exception, e:
         print '[Notice] Exception hit'
+        print e
         sys.exit(0)
 
 
@@ -87,14 +94,16 @@ def download_file(url, file_path, file_name):
 
 if __name__ == '__main__':
     cookies = authenticate()
-    headers = {'Csrf-Token':'ajax:4332914976342601831'}
-    cookies['JSESSIONID'] = 'ajax:4332914976342601831'
+    headers = {'Csrf-Token':cookies['JSESSIONID']}
+    # cookies['JSESSIONID'] = cookies['JSESSIONID']
 
     for course in config.COURSES:
         print ''
         course_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                      '??fields=videos&addParagraphsToTranscript=true&courseSlug={0}&q=slugs'.format(course)
         r = requests.get(course_url, cookies=cookies, headers=headers)
+        print r
+        # break
         course_name = r.json()['elements'][0]['title']
         course_name = re.sub(r'[\\/*?:"<>|]', "", course_name)
         chapters = r.json()['elements'][0]['chapters']
@@ -115,10 +124,10 @@ if __name__ == '__main__':
                 r = requests.get(video_url, cookies=cookies, headers=headers)
                 vc += 1
                 try:
-                    download_url = re.search('"progressiveUrl":"(.+)","streamingUrl"', r.text).group(1)
-                except:
+                    download_url = re.search('"progressiveUrl":"(.+)","expiresAt"', r.text).group(1)
+                except Exception, e:
                     print '[!] ------ Can\'t download the video "%s", probably is only for premium users' % video_name
+                    print e
                 else:
                     print '[*] ------ Downloading video "%s"' % video_name
                     download_file(download_url, 'out/%s/%s' % (course_name, chapter_name), '%s. %s.mp4' % (str(vc), video_name))
-
