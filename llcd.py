@@ -116,7 +116,7 @@ if __name__ == '__main__':
             print '[*] --- Parsing "%s" chapters\'s videos' % chapter_name
             print '[*] --- [%d videos found]' % len(videos)
             for video in videos:
-                video_name = re.sub(r'[\\/*?:"<>|]', "", video['title'])
+                video_name = re.sub(r'[\\/*?:"<>|]', "", video['title']).encode("utf-8", errors='ignore')
                 video_slug = video['slug']
                 video_url = 'https://www.linkedin.com/learning-api/detailedCourses' \
                             '?addParagraphsToTranscript=false&courseSlug={0}&q=slugs&resolution=_720&videoSlug={1}'\
