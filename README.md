@@ -1,7 +1,5 @@
 # Linkedin Learning Courses Downloader ☄️☄️☄️
 
-###### v0.2: now works without webdriver
-
 A simple python scraper tool that downloads video lessons from Linkedin Learning
 
 ## How to use
@@ -13,7 +11,8 @@ In the `config.py` file, write your login info and fill the `COURSES` array with
 ```python
 USERNAME = 'user@email.com'
 PASSWORD = 'password'
-
+BASE_DOWNLOAD_PATH = '' #use "/" as separators (defaults to 'out')
+SUBS = False # downloads subtitles
 COURSES = [
     'it-security-foundations-core-concepts',
     'javascript-for-web-designers-2',
@@ -23,18 +22,19 @@ COURSES = [
 
 You can either run docker-compose or run the code locally.
 
-### docker-compose
-
-You need to have docker installed. Then run:
-
+### Containerized
+#### pre-reqs
+- install docker
+- install docker-compose
+#### run
 ```bash
 docker-compose up --build
 ```
 
 ### Locally
-
-First install the requirements:
-
+#### pre-reqs
+- install pipenv
+#### run
 ```bash
 pipenv run download
 ```
