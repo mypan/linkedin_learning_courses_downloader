@@ -36,27 +36,7 @@ docker-compose up --build
 First install the requirements:
 
 ```bash
-pip install -r requirements.txt
-```
-
-If `pip` is not installed, run:
-
-```bash
-python get-pip.py
-```
-
-An updated version of `get-pip.py` can also be obtained by executing:
-
-```bash
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-```
-
-For more info, check [`this resource`](https://pip.pypa.io/en/stable/installing/)
-
-Then execute the script:
-
-```bash
-python llcd.py
+pipenv run download
 ```
 
 ### Outcome

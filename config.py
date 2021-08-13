@@ -2,6 +2,8 @@
 
 USERNAME = ''
 PASSWORD = ''
+BASE_DOWNLOAD_PATH = '' #use "/" as separators
+SUBS = False
 
 COURSES = [
     'it-security-foundations-core-concepts',
