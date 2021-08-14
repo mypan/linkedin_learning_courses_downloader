@@ -1,11 +1,11 @@
-FROM python:2-alpine
+FROM python:3-alpine
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
+COPY Pipfile Pipfile.lock ./
+RUN pipenv install
 
-COPY config.py llcd.py ./
+COPY config.py lld.py ./
 RUN ls -la
 
-CMD ["python", "./llcd.py"]
+CMD ["pipenv", "run download"]
